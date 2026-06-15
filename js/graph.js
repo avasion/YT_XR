@@ -11,8 +11,11 @@
 // ============================================================================
 
 import ForceGraph3D from '3d-force-graph';
+import * as THREE from 'three';
 import { CONFIG, FEATURED_HASHTAGS } from './config.js';
 import { graphData as demoData, youtubeLink } from './data.js';
+
+const RELATED_LIMIT = 2;   // how many related videos a node reveals when expanded
 
 // ---------------------------------------------------------------------------
 // 1. Load data (live videos.json, else curated demo data)
@@ -60,14 +63,21 @@ let focusId = null;           // selected node id (for highlighting)
 const litNodes = new Set();
 const litLinks = new Set();
 
+// Up to RELATED_LIMIT related videos for a node, best (most popular) first.
+function relatedVideos(id) {
+  return [...(neighbors.get(id) || [])]
+    .map(x => nodeById.get(x))
+    .filter(n => n && isVideo(n))
+    .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+    .slice(0, RELATED_LIMIT)
+    .map(n => n.id);
+}
+
 function computeVisible() {
   const vis = new Set();
   for (const n of masterNodes) if (isHub(n)) vis.add(n.id);       // hubs always visible
-  for (const pid of expanded) {                                   // + videos of expanded hubs
-    for (const nb of neighbors.get(pid) || []) {
-      const node = nodeById.get(nb);
-      if (node && isVideo(node)) vis.add(nb);
-    }
+  for (const pid of expanded) {                                   // + up to 2 related videos
+    for (const vid of relatedVideos(pid)) vis.add(vid);
   }
   const nodes = masterNodes.filter(n => vis.has(n.id));
   const links = masterLinks.filter(l => vis.has(l.srcId) && vis.has(l.tgtId));
@@ -107,6 +117,8 @@ const Graph = ForceGraph3D({ controlType: 'orbit' })(container)
   .nodeColor(nodeColor)
   .nodeOpacity(0.95)
   .nodeResolution(14)
+  .nodeThreeObject(nodeThreeObject)   // video nodes render as their YouTube thumbnail
+  .nodeThreeObjectExtend(false)
   .linkColor(l => (focusId != null && litLinks.has(l)) ? CONFIG.COLORS.linkHi
                   : (focusId != null ? CONFIG.COLORS.dim : CONFIG.COLORS.link))
   .linkWidth(l => (focusId != null && litLinks.has(l)) ? 1.6 : 0.4)
@@ -129,20 +141,45 @@ function nodeColor(n) {
   return CONFIG.COLORS.dim;
 }
 
+// Video nodes → a billboard sprite showing the real YouTube thumbnail.
+// Hubs (creators/#topics) return null → default colored sphere.
+const texCache = new Map();
+function nodeThreeObject(n) {
+  if (!isVideo(n) || !n.thumbnail) return null;
+  let tex = texCache.get(n.thumbnail);
+  if (!tex) {
+    tex = new THREE.TextureLoader().load(n.thumbnail);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    texCache.set(n.thumbnail, tex);
+  }
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex }));
+  const h = 10 + (n.popularity || 4);        // scale with popularity
+  sprite.scale.set(h * 16 / 9, h, 1);        // 16:9 thumbnail
+  return sprite;
+}
+
 function nodeTooltip(n) {
   const thumb = n.thumbnail ? `<img src="${n.thumbnail}" class="tip-thumb" alt="">` : '';
-  const hint = isVideo(n) ? '▶ click to play'
-             : (expanded.has(n.id) ? 'click to collapse' : 'click to open videos');
+  const hint = isVideo(n)
+    ? (expanded.has(n.id) ? 'double-click ▶ play · click to collapse' : 'double-click ▶ play · click for related')
+    : (expanded.has(n.id) ? 'click to collapse' : 'click to reveal 2 videos');
   return `<div class="gtip">${thumb}<b>${n.label}</b><br><span>${n.category} · ${hint}</span></div>`;
 }
 
 // ---------------------------------------------------------------------------
 // 4. Interaction: hubs expand, videos play
 // ---------------------------------------------------------------------------
+// Single click: any node expands to reveal its 2 related videos (click again to
+// collapse). Double-click a video: play it.
+let lastClick = { id: null, t: 0 };
 function onNodeClick(node) {
   if (!node) return;
-  if (isVideo(node)) { focusId = node.id; refresh(); renderInfo(node); playVideo(node); return; }
-  // hub → toggle its sub-map
+  const now = Date.now();
+  if (isVideo(node) && lastClick.id === node.id && now - lastClick.t < 350) {
+    playVideo(node); lastClick = { id: null, t: 0 }; return;
+  }
+  lastClick = { id: node.id, t: now };
+
   if (expanded.has(node.id)) expanded.delete(node.id);
   else expanded.add(node.id);
   focusId = node.id;
@@ -212,7 +249,7 @@ function renderInfo(node) {
     primary = `<button class="watch-link" data-play="${node.id}">▶ Play video</button>`;
   } else {
     const open = expanded.has(node.id);
-    primary = `<button class="watch-link" data-toggle="${node.id}">${open ? '⊖ Collapse' : '⊕ Open videos'}</button>`;
+    primary = `<button class="watch-link" data-toggle="${node.id}">${open ? '⊖ Collapse' : '⊕ Reveal 2 videos'}</button>`;
   }
 
   infoEl.innerHTML = `

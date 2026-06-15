@@ -4,16 +4,16 @@
 // ============================================================================
 
 export const CONFIG = {
-  // ---- Color system (your aesthetic: terracotta + warm pastels on white) ----
+  // ---- Color system (dark, clean: black canvas + two accents) ----
   COLORS: {
-    creator:   '#9C4A24', // terracotta — the people/channels
-    tutorial:  '#D4A574', // sand — individual videos
-    concept:   '#C9B8A8', // clay — topics / hashtags
-    highlight: '#FF6B35', // hot terracotta — selected node + its neighbors
-    dim:       '#E7E0D8', // faded — everything not in focus
-    link:      '#D8CEC4', // default edge
+    creator:   '#FF6B35', // warm accent — the people/channels
+    tutorial:  '#FFD166', // amber — video fallback before its thumbnail loads
+    concept:   '#4EA8DE', // cool accent — topics / hashtags
+    highlight: '#FFFFFF', // white — selected node + its neighbors
+    dim:       '#34353B', // faded — everything not in focus
+    link:      '#4A4C54', // default edge
     linkHi:    '#FF6B35', // edge touching the focused node
-    background: '#FAF7F3', // warm off-white canvas
+    background: '#08080A', // near-black canvas
   },
 
   // ---- Physics / layout (passed to d3-force-3d) ----
