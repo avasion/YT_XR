@@ -247,46 +247,42 @@ body {
 }
 .tip-thumb { display: block; width: 180px; height: auto; border-radius: 6px; margin-bottom: 6px; }
 
-/* Playable video overlay */
-.player-overlay {
-  position: fixed; inset: 0; z-index: 1000;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(0, 0, 0, 0.82);
-  backdrop-filter: blur(6px);
-}
-.player-overlay[hidden] { display: none; }
-.player-box {
-  width: min(900px, 92vw);
+/* Video player cards — HTML nodes locked to their 3D position */
+.vnode-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 50; }
+.vnode {
+  position: absolute; left: 0; top: 0; width: 240px;
+  pointer-events: auto;
   background: var(--panel-solid);
-  border-radius: 14px; overflow: hidden;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.7);
   border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  will-change: transform;
 }
-.player-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 13px 16px;
-  border-bottom: 1px solid var(--border);
+.vnode-media { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; cursor: pointer; }
+.vnode-thumb { width: 100%; height: 100%; object-fit: cover; display: block; }
+.vnode-play {
+  position: absolute; inset: 0; margin: auto;
+  width: 46px; height: 46px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 107, 53, 0.92); color: #0B0B0D;
+  border-radius: 50%; font-size: 17px; padding-left: 3px; pointer-events: none;
+  transition: background 0.15s;
 }
-.player-title {
-  font-family: 'IBM Plex Serif', serif; font-style: italic;
-  font-size: 15px; color: var(--text);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+.vnode-media:hover .vnode-play { background: var(--accent); }
+.vnode.playing .vnode-media { cursor: default; }
+.vnode-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.vnode-bar { display: flex; align-items: center; gap: 8px; padding: 8px 10px; }
+.vnode-title {
+  flex: 1; font-size: 12px; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.player-close {
-  flex-shrink: 0; width: 30px; height: 30px;
-  border: 1px solid var(--border); border-radius: 50%;
+.vnode-rel {
+  flex-shrink: 0; width: 24px; height: 24px; border-radius: 6px;
   background: rgba(255, 255, 255, 0.06); color: var(--text);
-  font-size: 14px; cursor: pointer; transition: all 0.18s;
+  border: 1px solid var(--border); cursor: pointer; font-size: 13px;
+  transition: all 0.15s;
 }
-.player-close:hover { background: var(--accent); border-color: var(--accent); color: #0B0B0D; }
-.player-frame-wrap { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; }
-.player-frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-.player-meta {
-  padding: 12px 16px;
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 12px; color: var(--text-dim);
-}
-.player-meta a { color: var(--accent); }
+.vnode-rel:hover { background: var(--accent-2); border-color: var(--accent-2); color: #0B0B0D; }
 
 /* Scrollbars */
 .search-results::-webkit-scrollbar, .info-panel::-webkit-scrollbar { width: 6px; }

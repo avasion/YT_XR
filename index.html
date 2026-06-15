@@ -43,23 +43,7 @@
   <div id="legend" class="legend"></div>
 
   <div class="controls">
-    <p class="controls-text">Drag: rotate · Scroll: zoom · Click hub: open its videos · Click video: play</p>
-  </div>
-
-  <!-- Playable video overlay (real YouTube player, layered over the 3D scene) -->
-  <div id="player-overlay" class="player-overlay" hidden>
-    <div class="player-box">
-      <div class="player-head">
-        <span id="playerTitle" class="player-title"></span>
-        <button id="playerClose" class="player-close" aria-label="Close">✕</button>
-      </div>
-      <div class="player-frame-wrap">
-        <iframe id="playerFrame" class="player-frame"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
-      </div>
-      <div id="playerMeta" class="player-meta"></div>
-    </div>
+    <p class="controls-text">Drag: rotate · Scroll: zoom · Click a hub to reveal videos · Click a video to play it</p>
   </div>
 
   <script type="module" src="js/graph.js"></script>

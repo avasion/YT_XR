@@ -1191,7 +1191,7 @@
                       "type":  "similar_topic"
                   }
               ],
-    "generatedAt":  "2026-06-15T15:11:07.0591703-04:00",
+    "generatedAt":  "2026-06-15T15:54:36.5336252-04:00",
     "nodes":  [
                   {
                       "id":  "c_mediapipe",
@@ -1672,7 +1672,7 @@
                   {
                       "id":  "v_Q7AOvWpIVHU",
                       "thumbnail":  "https://i.ytimg.com/vi/Q7AOvWpIVHU/hqdefault.jpg",
-                      "label":  "Build a Mindblowing 3D Portfolio Website // Three.js Beginner’s Tutorial",
+                      "label":  "Build a Mindblowing 3D Portfolio Website // Three.js Beginnerâ€™s Tutorial",
                       "category":  "tutorial",
                       "description":  "",
                       "videoId":  "Q7AOvWpIVHU",
@@ -1708,7 +1708,7 @@
                   {
                       "id":  "v_KM64t3pA4fs",
                       "thumbnail":  "https://i.ytimg.com/vi/KM64t3pA4fs/hqdefault.jpg",
-                      "label":  "Three.js 101 Crash Course: Beginner’s Guide to 3D Web Design (7 HOURS!)",
+                      "label":  "Three.js 101 Crash Course: Beginnerâ€™s Guide to 3D Web Design (7 HOURS!)",
                       "category":  "tutorial",
                       "description":  "",
                       "videoId":  "KM64t3pA4fs",
@@ -1938,7 +1938,7 @@
                   {
                       "id":  "v_Z_WfldiO6HI",
                       "thumbnail":  "https://i.ytimg.com/vi/Z_WfldiO6HI/hqdefault.jpg",
-                      "label":  "00 – Introduction – TouchDesigner Beginner Course",
+                      "label":  "00 â€“ Introduction â€“ TouchDesigner Beginner Course",
                       "category":  "tutorial",
                       "description":  "",
                       "videoId":  "Z_WfldiO6HI",
@@ -2010,7 +2010,7 @@
                   {
                       "id":  "v_o5t7PxRJSXk",
                       "thumbnail":  "https://i.ytimg.com/vi/o5t7PxRJSXk/hqdefault.jpg",
-                      "label":  "Learn p5.js for Creative Coding – 5 Beginner Projects",
+                      "label":  "Learn p5.js for Creative Coding â€“ 5 Beginner Projects",
                       "category":  "tutorial",
                       "description":  "",
                       "videoId":  "o5t7PxRJSXk",
@@ -2060,15 +2060,15 @@
                       "category":  "tutorial",
                       "description":  "",
                       "videoId":  "m_1lBVxIdM4",
-                      "channelTitle":  "tim rodenbröker creative coding",
+                      "channelTitle":  "tim rodenbrÃ¶ker creative coding",
                       "popularity":  6
                   },
                   {
                       "id":  "ch_httpswwwyoutubecomtimrodenbroeker",
-                      "label":  "tim rodenbröker creative coding",
+                      "label":  "tim rodenbrÃ¶ker creative coding",
                       "description":  "Creator on YouTube.",
                       "popularity":  5,
-                      "search":  "tim rodenbröker creative coding",
+                      "search":  "tim rodenbrÃ¶ker creative coding",
                       "category":  "creator"
                   },
                   {

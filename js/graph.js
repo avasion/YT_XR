@@ -109,11 +109,12 @@ function recomputeLit() {
 // positions stable across expand/collapse (no jarring re-layout).
 function refresh() {
   recomputeLit();
-  Graph.graphData(computeVisible());
+  const vis = computeVisible();
+  Graph.graphData(vis);
   Graph.nodeColor(Graph.nodeColor())
        .linkColor(Graph.linkColor())
-       .linkWidth(Graph.linkWidth())
-       .linkDirectionalParticles(Graph.linkDirectionalParticles());
+       .linkWidth(Graph.linkWidth());
+  syncCards(vis.nodes.filter(isVideo));   // video nodes are HTML player cards (§5)
 }
 
 // ---------------------------------------------------------------------------
@@ -136,9 +137,6 @@ const Graph = ForceGraph3D({ controlType: 'orbit' })(container)
                   : (focusId != null ? CONFIG.COLORS.dim : CONFIG.COLORS.link))
   .linkWidth(l => (focusId != null && litLinks.has(l)) ? 1.6 : 0.4)
   .linkOpacity(0.5)
-  .linkDirectionalParticles(l => (focusId != null && litLinks.has(l)) ? 3 : 0)
-  .linkDirectionalParticleWidth(2)
-  .linkDirectionalParticleColor(() => CONFIG.COLORS.highlight)
   .cooldownTicks(CONFIG.GRAPH.cooldownTicks)
   .onNodeClick(onNodeClick)
   .onBackgroundClick(() => { focusId = null; refresh(); renderInfoPlaceholder(); });
@@ -154,29 +152,17 @@ function nodeColor(n) {
   return CONFIG.COLORS.dim;
 }
 
-// Video nodes → a billboard sprite showing the real YouTube thumbnail.
+// Video nodes are drawn as HTML player cards (§5), so their WebGL object is
+// empty/invisible — only their position is used (links still connect to it).
 // Hubs (creators/#topics) return null → default colored sphere.
-const texCache = new Map();
 function nodeThreeObject(n) {
-  if (!isVideo(n) || !n.thumbnail) return null;
-  let tex = texCache.get(n.thumbnail);
-  if (!tex) {
-    tex = new THREE.TextureLoader().load(n.thumbnail);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    texCache.set(n.thumbnail, tex);
-  }
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex }));
-  const h = 10 + (n.popularity || 4);        // scale with popularity
-  sprite.scale.set(h * 16 / 9, h, 1);        // 16:9 thumbnail
-  return sprite;
+  return isVideo(n) ? new THREE.Object3D() : null;
 }
 
 function nodeTooltip(n) {
-  const thumb = n.thumbnail ? `<img src="${n.thumbnail}" class="tip-thumb" alt="">` : '';
-  const hint = isVideo(n)
-    ? (expanded.has(n.id) ? 'double-click ▶ play · click to collapse' : 'double-click ▶ play · click for related')
-    : (expanded.has(n.id) ? 'click to collapse' : 'click to reveal 2 videos');
-  return `<div class="gtip">${thumb}<b>${n.label}</b><br><span>${n.category} · ${hint}</span></div>`;
+  if (isVideo(n)) return `<div class="gtip"><b>${n.label}</b></div>`;
+  const hint = expanded.has(n.id) ? 'click to collapse' : 'click to reveal 2 videos';
+  return `<div class="gtip"><b>${n.label}</b><br><span>${n.category} · ${hint}</span></div>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -194,15 +180,12 @@ function focusOn(node) {
   if (live && live.x != null) flyTo(live);
 }
 
-let lastClick = { id: null, t: 0 };
+function toggleExpand(id) {
+  expanded.has(id) ? expanded.delete(id) : expanded.add(id);
+}
 function onNodeClick(node) {
-  if (!node) return;
-  const now = Date.now();
-  if (isVideo(node) && lastClick.id === node.id && now - lastClick.t < 350) {
-    playVideo(node); lastClick = { id: null, t: 0 }; return;
-  }
-  lastClick = { id: node.id, t: now };
-  expanded.has(node.id) ? expanded.delete(node.id) : expanded.add(node.id);
+  if (!node) return;       // hubs only — video nodes are HTML cards (§5)
+  toggleExpand(node.id);
   focusOn(node);
 }
 
@@ -216,37 +199,87 @@ function flyTo(node) {
 }
 
 // ---------------------------------------------------------------------------
-// 5. Playable video overlay (real YouTube player)
+// 5. Video nodes as HTML player cards, locked to their 3D position
 // ---------------------------------------------------------------------------
-const overlay     = document.getElementById('player-overlay');
-const playerFrame = document.getElementById('playerFrame');
-const playerTitle = document.getElementById('playerTitle');
-const playerMeta  = document.getElementById('playerMeta');
+const cardLayer = document.createElement('div');
+cardLayer.className = 'vnode-layer';
+container.appendChild(cardLayer);
 
+const cards = new Map();   // nodeId -> { el, node }
+const esc = s => String(s).replace(/[&<>"']/g,
+  c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function makeCard(node) {
+  const el = document.createElement('div');
+  el.className = 'vnode';
+  el.innerHTML = `
+    <div class="vnode-media">
+      <img class="vnode-thumb" src="${node.thumbnail || ''}" alt="" loading="lazy">
+      <span class="vnode-play">▶</span>
+    </div>
+    <div class="vnode-bar">
+      <span class="vnode-title" title="${esc(node.label)}">${esc(node.label)}</span>
+      <button class="vnode-rel" title="Reveal related videos">⊕</button>
+    </div>`;
+  el.querySelector('.vnode-media').addEventListener('click', () => { focusOn(node); playCard(node, el); });
+  el.querySelector('.vnode-rel').addEventListener('click', e => {
+    e.stopPropagation(); toggleExpand(node.id); focusOn(node);
+  });
+  cardLayer.appendChild(el);
+  return el;
+}
+
+// Swap the thumbnail for a real, autoplaying YouTube iframe — the node becomes a player.
+function playCard(node, el) {
+  if (!node.videoId) { window.open(youtubeLink(node), '_blank', 'noopener'); return; }
+  if (el.classList.contains('playing')) return;
+  el.querySelector('.vnode-media').innerHTML =
+    `<iframe class="vnode-frame" src="https://www.youtube-nocookie.com/embed/${node.videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1"
+       allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen
+       referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+  el.classList.add('playing');
+}
+
+// Called from the info panel / search: make sure the card exists, then play it.
 function playVideo(node) {
-  if (!node.videoId) {
-    // Demo data has no real IDs — open a YouTube search instead.
-    window.open(youtubeLink(node), '_blank', 'noopener');
-    return;
-  }
-  playerTitle.textContent = node.label;
-  // youtube-nocookie = privacy-friendly (good for classrooms). rel=0 keeps
-  // suggested videos limited to the same channel.
-  playerFrame.src = `https://www.youtube-nocookie.com/embed/${node.videoId}?autoplay=1&rel=0&modestbranding=1`;
-  const views = node.viewCount ? Number(node.viewCount).toLocaleString() + ' views' : '';
-  playerMeta.innerHTML = `${node.channelTitle ? '<strong>' + node.channelTitle + '</strong>' : ''}
-    ${views ? ' · ' + views : ''}
-    · <a href="https://www.youtube.com/watch?v=${node.videoId}" target="_blank" rel="noopener">Open on YouTube ↗</a>`;
-  overlay.hidden = false;
+  if (!node.videoId) { window.open(youtubeLink(node), '_blank', 'noopener'); return; }
+  if (!cards.has(node.id)) selectNode(node);   // expands owning hub -> creates the card
+  const c = cards.get(node.id);
+  if (c) playCard(node, c.el);
 }
 
-function closePlayer() {
-  overlay.hidden = true;
-  playerFrame.src = '';   // stop playback
+// Keep the live cards matched to the currently-visible video nodes.
+function syncCards(videoNodes) {
+  const want = new Set(videoNodes.map(n => n.id));
+  for (const [id, c] of cards) {
+    if (!want.has(id)) { c.el.remove(); cards.delete(id); }
+  }
+  for (const node of videoNodes) {
+    if (!cards.has(node.id)) cards.set(node.id, { el: makeCard(node), node });
+  }
 }
-document.getElementById('playerClose').addEventListener('click', closePlayer);
-overlay.addEventListener('click', e => { if (e.target === overlay) closePlayer(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closePlayer(); });
+
+// Each frame: project every card's node to screen and place the card there.
+const _v = new THREE.Vector3();
+function positionCards() {
+  const cam = Graph.camera();
+  const w = container.clientWidth, h = container.clientHeight;
+  for (const { el, node } of cards.values()) {
+    if (node.x == null) { el.style.display = 'none'; continue; }
+    _v.set(node.x, node.y, node.z);
+    const dist = cam.position.distanceTo(_v);
+    _v.project(cam);
+    if (_v.z > 1) { el.style.display = 'none'; continue; }   // behind the camera
+    const sx = (_v.x * 0.5 + 0.5) * w;
+    const sy = (-_v.y * 0.5 + 0.5) * h;
+    const scale = Math.min(1.2, Math.max(0.45, (CONFIG.GRAPH.cameraDistance * 0.7) / dist));
+    el.style.display = 'block';
+    el.style.zIndex = String(Math.max(1, 2000 - Math.round(dist)));
+    el.style.transform = `translate(${sx}px, ${sy}px) translate(-50%, -50%) scale(${scale.toFixed(3)})`;
+  }
+  requestAnimationFrame(positionCards);
+}
+requestAnimationFrame(positionCards);
 
 // ---------------------------------------------------------------------------
 // 6. Info panel
@@ -403,4 +436,10 @@ Graph.width(container.clientWidth).height(container.clientHeight);
 
 refresh();
 renderInfoPlaceholder();
+
+// Optional deep link: open the app at #open=<hubId> to auto-expand a hub
+// (handy for sharing a topic with a whole class).
+const openId = new URLSearchParams(location.hash.slice(1)).get('open');
+if (openId && nodeById.has(openId)) selectNode(nodeById.get(openId));
+
 console.log(`✅ XR graph (${data.source}): ${masterNodes.length} nodes, ${masterLinks.length} links`);
