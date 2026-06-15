@@ -4,8 +4,8 @@
 .env.*.local
 config.local.js
 
-# API Keys (NEVER commit these!)
-js/config.js  # Keep this locally only, or use .env
+# Local YouTube API key for the fetch script (NEVER commit this!)
+# The key belongs in a local .env OR in Netlify's environment variables.
 
 # IDE
 .vscode/

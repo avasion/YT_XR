@@ -64,77 +64,24 @@ npx http-server
 
 ---
 
-## Adding YouTube API (Handoff to Claude Code)
+## Real, playable videos (the secure way)
 
-The project is **structured for Claude Code in VS Code** to handle YouTube API integration.
+Each **#topic** and **creator** is a hub; click it to drill down into a smaller
+connections map of its **actual videos**, then click a video to play it in a
+real YouTube player overlaid on the 3D scene.
 
-### Step 1: Get Your YouTube API Key
+Out of the box the graph uses curated demo data. To load real videos, add a
+YouTube Data API key — but **never put the key in the code or Git.** Instead it
+lives in Netlify's environment, and a build-time script bakes the results into
+a static `js/videos.json`.
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Create a new project
-3. Search for "YouTube Data API v3" and enable it
-4. Go to **Credentials** → **Create Credentials** → **API Key**
-5. Copy your API key
+👉 **Full steps + security checklist: [SETUP.md](SETUP.md).**
 
-### Step 2: Add Key to Config
-
-1. Open `js/config.js`
-2. Find this line:
-   ```javascript
-   YOUTUBE_API_KEY: '', // TODO: Replace with your actual API key
-   ```
-3. Paste your key:
-   ```javascript
-   YOUTUBE_API_KEY: 'YOUR_ACTUAL_KEY_HERE',
-   ```
-4. Set feature flag to enable API:
-   ```javascript
-   FEATURES: {
-       USE_YOUTUBE_API: true, // Changed from false
-   }
-   ```
-
-### Step 3: Use Claude Code to Implement API Integration
-
-In VS Code with Claude Code installed:
-
-1. Open the command palette: **Cmd+Shift+P** (Mac) or **Ctrl+Shift+P** (Windows)
-2. Type "Claude Code" and select it
-3. Paste this prompt:
-
-```
-I have a 3D graph visualization project for exploring XR/AR tutorials. 
-The file js/api.js has placeholder functions for YouTube API integration.
-
-My YouTube API key is now in js/config.js
-
-Please implement the real YouTube API functionality in js/api.js:
-
-1. Implement fetchVideosFromYouTube() to:
-   - Build search queries from hashtags (#MediaPipe, #XR, #AR, #VR, #WebXR, #InteractiveArt, #ThreeJS, #TouchDesigner, #GenerativeArt)
-   - Call YouTube Search API to find videos
-   - Fetch video details (id, title, description, thumbnail, viewCount, publishedAt)
-   - Transform results into graph nodes and links
-
-2. Add logic to:
-   - Create video nodes (category: 'tutorial')
-   - Create creator nodes from channel owners (category: 'creator')
-   - Build semantic connections between similar videos using keywords
-   - Color code by relevance/views
-
-3. Make sure:
-   - API calls use CONFIG.YOUTUBE_API_KEY
-   - Error handling falls back to seed data
-   - Results merge with existing seed data structure
-   - Node colors follow the terracotta theme (#9C4A24 primary, lighter pastels for other categories)
-
-The seed data structure in js/seed-data.js shows the expected format.
-
-Keep the code clean and well-commented for teaching purposes.
-```
-
-4. Claude Code will implement the full YouTube API integration
-5. Test by searching for topics in the UI
+In short:
+1. Get a YouTube Data API v3 key and restrict it to that API.
+2. Add it as `YOUTUBE_API_KEY` in **Netlify → Environment variables** (not in code).
+3. Redeploy — `scripts/fetch-videos.mjs` fetches `safeSearch=strict`, embeddable
+   videos and writes `js/videos.json`, which the site loads automatically.
 
 ---
 

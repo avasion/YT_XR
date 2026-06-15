@@ -4,9 +4,13 @@
   "description": "3D Force-Directed Graph for exploring XR/AR/VR tutorials and creators",
   "main": "index.html",
   "scripts": {
-    "dev": "python3 -m http.server 8000",
+    "dev": "python -m http.server 8000",
     "serve": "npx http-server",
+    "fetch": "node scripts/fetch-videos.mjs",
     "deploy": "netlify deploy"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "keywords": [
     "three.js",

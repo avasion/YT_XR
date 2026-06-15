@@ -1,0 +1,16 @@
+# Netlify build config.
+#
+# At deploy time, Netlify runs the fetch script using the YOUTUBE_API_KEY
+# you set in Site settings -> Environment variables. The script writes
+# js/videos.json, which is published as a static file. The key stays on
+# Netlify's build server and never reaches the browser or the repo.
+#
+# If YOUTUBE_API_KEY is not set, the script skips fetching and the site
+# falls back to the curated demo data — so deploys never fail.
+
+[build]
+  command = "node scripts/fetch-videos.mjs"
+  publish = "."
+
+[build.environment]
+  NODE_VERSION = "20"
