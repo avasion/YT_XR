@@ -1,0 +1,25 @@
+{
+  "name": "xr-graph-search",
+  "version": "1.0.0",
+  "description": "3D Force-Directed Graph for exploring XR/AR/VR tutorials and creators",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python3 -m http.server 8000",
+    "serve": "npx http-server",
+    "deploy": "netlify deploy"
+  },
+  "keywords": [
+    "three.js",
+    "graph",
+    "xr",
+    "ar",
+    "vr",
+    "interactive",
+    "visualization"
+  ],
+  "author": "Ava Kling",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

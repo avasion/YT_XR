@@ -1,0 +1,32 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+config.local.js
+
+# API Keys (NEVER commit these!)
+js/config.js  # Keep this locally only, or use .env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build/dist
+dist/
+build/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log

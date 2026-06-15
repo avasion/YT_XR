@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XR Interactive Graph Search</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="graph-container"></div>
+    
+    <div class="search-panel">
+        <input 
+            type="text" 
+            id="searchInput" 
+            class="search-bar" 
+            placeholder="Search creators, videos, or topics..."
+            autocomplete="off"
+        >
+        <div id="searchResults" class="search-results"></div>
+    </div>
+
+    <div class="info-panel">
+        <div id="nodeInfo" class="node-info">
+            <p class="info-placeholder">Click a node to see details</p>
+        </div>
+    </div>
+
+    <div class="controls">
+        <p class="controls-text">WASD: Navigate | Mouse: Look Around | Click: Select Node</p>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- three-force-graph -->
+    <script src="https://cdn.jsdelivr.net/npm/3d-force-graph@1.73.0/dist/3d-force-graph.min.js"></script>
+
+    <!-- Load seed data first -->
+    <script src="js/seed-data.js"></script>
+    
+    <!-- Load config (API key placeholder) -->
+    <script src="js/config.js"></script>
+    
+    <!-- Load API utility functions -->
+    <script src="js/api.js"></script>
+    
+    <!-- Main graph logic -->
+    <script src="js/graph.js"></script>
+</body>
+</html>
