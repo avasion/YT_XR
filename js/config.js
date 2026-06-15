@@ -18,11 +18,16 @@ export const CONFIG = {
 
   // ---- Physics / layout (passed to d3-force-3d) ----
   GRAPH: {
-    chargeStrength: -180,  // node repulsion (more negative = more spread out)
-    linkDistance:   55,    // ideal edge length
-    cameraDistance: 320,   // starting zoom
-    cooldownTicks:  120,   // how long the simulation runs before settling
+    chargeStrength: -110,  // node repulsion (more negative = more spread out)
+    linkDistance:   34,    // ideal edge length
+    cameraDistance: 360,   // starting zoom (zoomToFit reframes once settled)
+    cooldownTicks:  140,   // how long the simulation runs before settling
+    recenter:       0.05,  // pull the whole galaxy back toward center each tick
+    fitPadding:     70,    // px padding when framing the galaxy to the screen
   },
+
+  // ---- Click-to-grow animation ----
+  GROW: { hub: 2.2, cardMin: 0.8, cardMax: 2.0, lerp: 0.12 },
 
   // ---- Search behavior ----
   SEARCH: {

@@ -250,7 +250,7 @@ body {
 /* Video player cards — HTML nodes locked to their 3D position */
 .vnode-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 50; }
 .vnode {
-  position: absolute; left: 0; top: 0; width: 240px;
+  position: absolute; left: 0; top: 0; width: 168px;
   pointer-events: auto;
   background: var(--panel-solid);
   border: 1px solid var(--border);
