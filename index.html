@@ -1,51 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XR Interactive Graph Search</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XR Connections Graph — Search Engine</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- 3d-force-graph bundles Three.js + d3-force-3d. Pinned versions so the
+       app is reproducible for the whole class. Served from esm.sh as modules. -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://esm.sh/three@0.160.0",
+      "3d-force-graph": "https://esm.sh/3d-force-graph@1.73.4"
+    }
+  }
+  </script>
 </head>
 <body>
-    <div id="graph-container"></div>
-    
-    <div class="search-panel">
-        <input 
-            type="text" 
-            id="searchInput" 
-            class="search-bar" 
-            placeholder="Search creators, videos, or topics..."
-            autocomplete="off"
-        >
-        <div id="searchResults" class="search-results"></div>
-    </div>
+  <div id="graph-container"></div>
 
-    <div class="info-panel">
-        <div id="nodeInfo" class="node-info">
-            <p class="info-placeholder">Click a node to see details</p>
-        </div>
-    </div>
+  <header class="topbar">
+    <h1>XR&nbsp;<span>Connections</span></h1>
+    <button id="resetBtn" class="reset-btn">Reset view</button>
+  </header>
 
-    <div class="controls">
-        <p class="controls-text">WASD: Navigate | Mouse: Look Around | Click: Select Node</p>
-    </div>
+  <section class="search-panel">
+    <input type="text" id="searchInput" class="search-bar"
+           placeholder="Search creators, videos, or #hashtags…" autocomplete="off">
+    <div id="searchResults" class="search-results"></div>
+    <div class="chips-label">Popular hashtags</div>
+    <div id="hashtagChips" class="chips"></div>
+  </section>
 
-    <!-- Three.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    
-    <!-- three-force-graph -->
-    <script src="https://cdn.jsdelivr.net/npm/3d-force-graph@1.73.0/dist/3d-force-graph.min.js"></script>
+  <aside class="info-panel">
+    <div id="nodeInfo" class="node-info"></div>
+  </aside>
 
-    <!-- Load seed data first -->
-    <script src="js/seed-data.js"></script>
-    
-    <!-- Load config (API key placeholder) -->
-    <script src="js/config.js"></script>
-    
-    <!-- Load API utility functions -->
-    <script src="js/api.js"></script>
-    
-    <!-- Main graph logic -->
-    <script src="js/graph.js"></script>
+  <div id="legend" class="legend"></div>
+
+  <div class="controls">
+    <p class="controls-text">Drag: rotate · Scroll: zoom · Click node: focus · Click empty space: reset</p>
+  </div>
+
+  <script type="module" src="js/graph.js"></script>
 </body>
 </html>

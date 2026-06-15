@@ -15,15 +15,18 @@ A 3D force-directed graph visualization for exploring curated MediaPipe, XR, AR,
 
 ```
 xr-graph-search/
-├── index.html           # Main HTML entry point
-├── style.css            # Styling (IBM Plex + your aesthetic)
+├── index.html           # Entry point (ES-module importmap → 3d-force-graph)
+├── style.css            # Styling (IBM Plex + terracotta aesthetic)
 ├── js/
-│   ├── graph.js         # Main visualization logic (three-force-graph)
-│   ├── api.js           # YouTube API integration (to be extended)
-│   ├── config.js        # Configuration + API key placeholder
-│   └── seed-data.js     # Test data (works immediately, no API needed)
+│   ├── graph.js         # App logic: render, search, highlight, fly-to
+│   ├── config.js        # Colors, physics, search + featured hashtags
+│   └── data.js          # Curated dataset (creators / videos / concepts)
 └── README.md            # This file
 ```
+
+> **Run it:** ES modules must be served over HTTP, not opened as a file.
+> Use VS Code Live Server, or `python -m http.server 8000` then open
+> http://localhost:8000.
 
 ## Getting Started (2 minutes)
 
