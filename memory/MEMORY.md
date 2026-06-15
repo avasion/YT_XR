@@ -1,1 +1,0 @@
-- [Ava — XR educator](user-ava-xr-educator.md) — K12 STEM teacher; classroom-friendly vanilla code, terracotta/IBM Plex design system
