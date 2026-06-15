@@ -54,6 +54,12 @@ masterLinks.forEach(l => {
 
 const isHub   = n => n.category === 'concept' || n.category === 'creator';
 const isVideo = n => n.category === 'tutorial';
+const hubNodes = masterNodes.filter(isHub);   // always-visible nodes, computed once
+
+// Lowercased search index — built once instead of per keystroke.
+const searchIndex = masterNodes.map(n => ({
+  n, label: n.label.toLowerCase(), desc: (n.description || '').toLowerCase(),
+}));
 
 // ---------------------------------------------------------------------------
 // 2. Drill-down state: which hubs are expanded, and what's highlighted
@@ -64,18 +70,25 @@ const litNodes = new Set();
 const litLinks = new Set();
 
 // Up to RELATED_LIMIT related videos for a node, best (most popular) first.
+// Memoized — the graph is static, so each node's answer never changes.
+const relatedCache = new Map();
 function relatedVideos(id) {
-  return [...(neighbors.get(id) || [])]
-    .map(x => nodeById.get(x))
-    .filter(n => n && isVideo(n))
-    .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
-    .slice(0, RELATED_LIMIT)
-    .map(n => n.id);
+  let r = relatedCache.get(id);
+  if (!r) {
+    r = [...(neighbors.get(id) || [])]
+      .map(x => nodeById.get(x))
+      .filter(n => n && isVideo(n))
+      .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+      .slice(0, RELATED_LIMIT)
+      .map(n => n.id);
+    relatedCache.set(id, r);
+  }
+  return r;
 }
 
 function computeVisible() {
   const vis = new Set();
-  for (const n of masterNodes) if (isHub(n)) vis.add(n.id);       // hubs always visible
+  for (const n of hubNodes) vis.add(n.id);                        // hubs always visible
   for (const pid of expanded) {                                   // + up to 2 related videos
     for (const vid of relatedVideos(pid)) vis.add(vid);
   }
@@ -171,6 +184,16 @@ function nodeTooltip(n) {
 // ---------------------------------------------------------------------------
 // Single click: any node expands to reveal its 2 related videos (click again to
 // collapse). Double-click a video: play it.
+// Highlight a node, repaint, show its info, and fly to it. Shared by clicks,
+// search results, and connection chips.
+function focusOn(node) {
+  focusId = node.id;
+  refresh();
+  renderInfo(node);
+  const live = nodeById.get(node.id);   // the positioned instance
+  if (live && live.x != null) flyTo(live);
+}
+
 let lastClick = { id: null, t: 0 };
 function onNodeClick(node) {
   if (!node) return;
@@ -179,13 +202,8 @@ function onNodeClick(node) {
     playVideo(node); lastClick = { id: null, t: 0 }; return;
   }
   lastClick = { id: node.id, t: now };
-
-  if (expanded.has(node.id)) expanded.delete(node.id);
-  else expanded.add(node.id);
-  focusId = node.id;
-  refresh();
-  renderInfo(node);
-  flyTo(node);
+  expanded.has(node.id) ? expanded.delete(node.id) : expanded.add(node.id);
+  focusOn(node);
 }
 
 function flyTo(node) {
@@ -275,18 +293,12 @@ function selectNode(node) {
   if (!node) return;
   if (isVideo(node)) {
     // expand a hub that owns this video so it appears in the map
-    for (const nb of neighbors.get(node.id) || []) {
-      const p = nodeById.get(nb);
-      if (p && isHub(p)) { expanded.add(p.id); break; }
-    }
+    const hub = [...(neighbors.get(node.id) || [])].map(id => nodeById.get(id)).find(p => p && isHub(p));
+    if (hub) expanded.add(hub.id);
   } else {
     expanded.add(node.id);
   }
-  focusId = node.id;
-  refresh();
-  renderInfo(node);
-  const live = nodeById.get(node.id);            // grab the positioned instance
-  if (live && live.x != null) flyTo(live);
+  focusOn(node);
 }
 
 // ---------------------------------------------------------------------------
@@ -298,10 +310,8 @@ const resultsEl   = document.getElementById('searchResults');
 function search(query) {
   const q = query.trim().toLowerCase();
   if (q.length < CONFIG.SEARCH.minLength) return [];
-  return masterNodes
-    .map(n => {
-      const label = n.label.toLowerCase();
-      const desc  = (n.description || '').toLowerCase();
+  return searchIndex
+    .map(({ n, label, desc }) => {
       let score = 0;
       if (label === q || label === '#' + q) score = 100;
       else if (label.startsWith(q) || label.startsWith('#' + q)) score = 60;

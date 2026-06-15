@@ -8,11 +8,13 @@
 
   <!-- 3d-force-graph bundles Three.js + d3-force-3d. Pinned versions so the
        app is reproducible for the whole class. Served from esm.sh as modules. -->
+  <!-- `?external=three` makes 3d-force-graph import the SAME three instance the
+       importmap provides — one download, no dual-instance bugs (e.g. thumbnails). -->
   <script type="importmap">
   {
     "imports": {
       "three": "https://esm.sh/three@0.160.0",
-      "3d-force-graph": "https://esm.sh/3d-force-graph@1.73.4"
+      "3d-force-graph": "https://esm.sh/3d-force-graph@1.73.4?external=three"
     }
   }
   </script>
