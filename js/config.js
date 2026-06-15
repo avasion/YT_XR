@@ -38,7 +38,7 @@ export const CONFIG = {
 // The hashtags we curate around — also rendered as clickable chips in the UI.
 // These are the best discovery tags for viral MediaPipe / XR / interactive content.
 export const FEATURED_HASHTAGS = [
-  '#MediaPipe', '#WebXR', '#AR', '#VR', '#ThreeJS',
-  '#CreativeCoding', '#HandTracking', '#TouchDesigner',
-  '#GenerativeArt', '#ShaderArt', '#ComputerVision', '#InteractiveArt',
+  '#MediaPipe', '#HandTracking', '#WebXR', '#AR', '#VR', '#ThreeJS',
+  '#ReactThreeFiber', '#ShaderArt', '#TouchDesigner', '#GenerativeArt',
+  '#CreativeCoding', '#VibeCoding', '#MLModels', '#PoseEstimation',
 ];
