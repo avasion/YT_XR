@@ -104,6 +104,14 @@ Graph.d3Force('link').distance(CONFIG.GRAPH.linkDistance);
 Graph.d3Force('recenter', recenterForce(CONFIG.GRAPH.recenter));   // keep galaxy centered
 Graph.cameraPosition({ z: CONFIG.GRAPH.cameraDistance });
 
+// Smooth, slow navigation: scrolling up glides gently inward toward the videos
+// instead of snapping. Damping makes orbit/zoom feel calm and clean.
+const controls = Graph.controls();
+controls.enableDamping = true;
+controls.dampingFactor = 0.12;
+controls.zoomSpeed = 0.42;     // slow, deliberate scroll-to-approach
+controls.rotateSpeed = 0.65;
+
 // Custom force: gently pull the node centroid back to the origin every tick so
 // the galaxy never drifts off screen. (No d3 import needed.)
 function recenterForce(strength) {
@@ -174,9 +182,25 @@ function setGrown(id) {
   }
   grownId = id;
   if (id == null) { renderInfoPlaceholder(); return; }
+  const node = nodeById.get(id);
   const c = cards.get(id);
   if (c) playCard(c);                          // video → starts playing as it grows
-  renderInfo(nodeById.get(id));
+  renderInfo(node);
+  focusCamera(node);                           // cleanly frame the selected node
+}
+
+// Smoothly ease the camera to frame a node (centers selected videos cleanly).
+function focusCamera(node) {
+  const live = nodeById.get(node.id);
+  if (!live || live.x == null) return;
+  const dist = isVideo(node) ? 62 : 86;
+  const r = Math.hypot(live.x, live.y, live.z) || 1;
+  const k = (r + dist) / r;
+  Graph.cameraPosition(
+    { x: live.x * k, y: live.y * k, z: live.z * k },
+    { x: live.x, y: live.y, z: live.z },
+    1100   // eased, unhurried
+  );
 }
 
 // One render loop: animate hub scales + card growth, and place cards on screen.

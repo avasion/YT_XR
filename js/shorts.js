@@ -16,10 +16,12 @@ const countEl   = document.getElementById('shortsCount');
 
 // Card geometry. radius scales with N so spacing between cards stays constant
 // (a clean wheel whether you're viewing 5 shorts or 60).
-const SPACING = 210, MIN_R = 360, LERP = 0.12;
+const SPACING = 210, MIN_R = 360;
+const MAX_DRIFT = 0.55;   // max deg/frame from horizontal mouse position (slow)
 
 let all = [], topics = [], view = [], cards = [];
-let step = 0, radius = MIN_R, rotation = 0, targetRot = 0;
+let step = 0, radius = MIN_R, rotation = 0;
+let vel = 0, drift = 0, dragging = false, dragMoved = false, lastX = 0;
 let activeFilter = 'All', playingIndex = -1;
 
 const esc = s => String(s).replace(/[&<>"']/g,
@@ -62,7 +64,7 @@ function applyFilter(tag, q) {
 
 function buildWheel() {
   stopPlaying();
-  wheel.innerHTML = ''; cards = []; rotation = 0; targetRot = 0;
+  wheel.innerHTML = ''; cards = []; rotation = 0; vel = 0; drift = 0;
   const N = view.length;
   countEl.textContent = N ? `${N} short${N === 1 ? '' : 's'}` : '';
   stage.classList.toggle('empty', N === 0);
@@ -94,8 +96,8 @@ function activeIndex() {
 }
 
 function onCardClick(i) {
-  if (i === activeIndex()) playShort(i);
-  else targetRot = -i * step;          // spin it to the front
+  if (playingIndex === i) stopPlaying();   // click again to stop + resume browsing
+  else playShort(i);                        // play it; the wheel eases it to front
 }
 
 function playShort(i) {
@@ -121,40 +123,54 @@ function stopPlaying() {
 }
 
 // ---------------------------------------------------------------------------
-// Animation loop: ease the wheel toward its target and mark the active card.
+// Animation loop. Normally the wheel drifts slowly based on where the mouse is
+// (left of center spins one way, right the other). While a short is playing,
+// the wheel eases that card to the front and holds.
 function loop() {
-  rotation += (targetRot - rotation) * LERP;
+  if (playingIndex >= 0 && cards[playingIndex]) {
+    let target = -playingIndex * step;                 // center the playing short
+    while (target - rotation > 180) target -= 360;
+    while (target - rotation < -180) target += 360;
+    rotation += (target - rotation) * 0.12;
+    vel = 0;
+  } else if (!dragging) {
+    vel += (drift - vel) * 0.08;                        // ease toward mouse-driven drift
+    rotation += vel;
+  }
   wheel.style.transform = `translateZ(${-radius}px) rotateY(${rotation}deg)`;
-  const active = activeIndex();
+  const active = playingIndex >= 0 ? playingIndex : activeIndex();
   for (let i = 0; i < cards.length; i++) cards[i].classList.toggle('active', i === active);
-  if (playingIndex >= 0 && playingIndex !== active) stopPlaying();   // stop when spun away
   requestAnimationFrame(loop);
 }
 
 // ---------------------------------------------------------------------------
-// Input: scroll, drag, arrow keys
+// Input: horizontal mouse position drifts the wheel; drag to grab; two-finger /
+// wheel scroll nudges; arrow keys step.
+stage.addEventListener('pointermove', e => {
+  const rect = stage.getBoundingClientRect();
+  if (dragging) {
+    const dx = e.clientX - lastX; lastX = e.clientX;
+    if (Math.abs(dx) > 2) dragMoved = true;
+    rotation += dx * 0.25;
+  } else {
+    const x = (e.clientX - rect.left) / rect.width;    // 0 (left) … 1 (right)
+    drift = (x - 0.5) * 2 * MAX_DRIFT;                 // → slow left/right spin
+  }
+});
+stage.addEventListener('pointerleave', () => { if (!dragging) drift = 0; });
+stage.addEventListener('pointerdown', e => { dragging = true; dragMoved = false; lastX = e.clientX; stage.setPointerCapture(e.pointerId); });
+stage.addEventListener('pointerup', () => { dragging = false; setTimeout(() => { dragMoved = false; }, 0); });
+
 stage.addEventListener('wheel', e => {
   e.preventDefault();
-  if (step) targetRot += (e.deltaY > 0 ? -step : step);
+  const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+  rotation -= d * 0.06;                                // trackpad horizontal / wheel nudge
 }, { passive: false });
 
-let dragging = false, lastX = 0, dragMoved = false;
-stage.addEventListener('pointerdown', e => { dragging = true; dragMoved = false; lastX = e.clientX; stage.setPointerCapture(e.pointerId); });
-stage.addEventListener('pointermove', e => {
-  if (!dragging) return;
-  const dx = e.clientX - lastX; lastX = e.clientX;
-  if (Math.abs(dx) > 2) dragMoved = true;
-  rotation += dx * 0.25; targetRot += dx * 0.25;
-});
-stage.addEventListener('pointerup', () => {
-  dragging = false;
-  if (step) targetRot = Math.round(targetRot / step) * step;   // snap to a card
-  setTimeout(() => { dragMoved = false; }, 0);
-});
 window.addEventListener('keydown', e => {
   if (!step) return;
-  if (e.key === 'ArrowRight') targetRot -= step;
-  else if (e.key === 'ArrowLeft') targetRot += step;
+  if (e.key === 'ArrowRight') rotation -= step;
+  else if (e.key === 'ArrowLeft') rotation += step;
 });
 
 searchEl.addEventListener('input', () => applyFilter(activeFilter, searchEl.value));
