@@ -152,8 +152,10 @@ stage.addEventListener('wheel', e => {
   e.preventDefault();
   const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
   accum += d;
-  while (accum >= SCROLL_NOTCH)  { move(1);  accum -= SCROLL_NOTCH; }   // one card per notch
-  while (accum <= -SCROLL_NOTCH) { move(-1); accum += SCROLL_NOTCH; }
+  let steps = 0;
+  while (accum >= SCROLL_NOTCH)  { steps++; accum -= SCROLL_NOTCH; }    // one card per notch
+  while (accum <= -SCROLL_NOTCH) { steps--; accum += SCROLL_NOTCH; }
+  if (steps) { if (playingIndex >= 0) stopPlaying(); move(steps); }     // scrolling stops playback + resumes
 }, { passive: false });
 
 let downIdx = -1;
@@ -166,7 +168,7 @@ stage.addEventListener('pointerdown', e => {
 stage.addEventListener('pointermove', e => {
   if (!dragging) return;
   const dx = e.clientX - lastX; lastX = e.clientX;
-  if (Math.abs(dx) > 3) dragMoved = true;
+  if (Math.abs(dx) > 3) { dragMoved = true; if (playingIndex >= 0) stopPlaying(); }  // drag stops playback
   rotation += dx * 0.3;
   targetRot = rotation;                       // follow the finger; snap on release
 });
@@ -178,8 +180,9 @@ stage.addEventListener('pointerup', () => {
 });
 
 window.addEventListener('keydown', e => {
-  if (e.key === 'ArrowRight') move(1);
-  else if (e.key === 'ArrowLeft') move(-1);
+  if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+  if (playingIndex >= 0) stopPlaying();         // arrow keys stop playback + resume scroll
+  move(e.key === 'ArrowRight' ? 1 : -1);
 });
 
 searchEl.addEventListener('input', () => applyFilter(activeFilter, searchEl.value));
