@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XR Shorts — Interactive Project Reels</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="shorts-page">
+  <div class="shorts-bg"></div>
+
+  <header class="topbar">
+    <h1>XR&nbsp;<span>Shorts</span></h1>
+    <nav class="tabs">
+      <a href="index.html" class="tab">◉ Galaxy</a>
+      <a href="shorts.html" class="tab active">⟳ Shorts</a>
+    </nav>
+    <span class="shorts-count" id="shortsCount"></span>
+  </header>
+
+  <section class="shorts-controls">
+    <input type="text" id="shortsSearch" class="search-bar" placeholder="Search shorts by title, creator, or topic…" autocomplete="off">
+    <div id="shortsFilters" class="chips"></div>
+  </section>
+
+  <div id="wheel-stage" class="wheel-stage">
+    <div id="wheel" class="wheel"></div>
+    <p class="wheel-empty">No shorts match — try another topic.</p>
+  </div>
+
+  <div class="controls wheel-hint">
+    <p class="controls-text">Scroll / drag / ← → to spin the wheel · Click the front short to play</p>
+  </div>
+
+  <script type="module" src="js/shorts.js"></script>
+</body>
+</html>
