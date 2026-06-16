@@ -84,7 +84,7 @@ function buildWheel() {
         <span class="short-topic">#${esc(s.topic)}</span>
       </div>
       <div class="short-title">${esc(s.title)}</div>`;
-    el.addEventListener('click', () => { if (!dragMoved) onCardClick(i); });
+    el.dataset.i = i;          // tap handled in pointerup (pointer-capture-safe)
     wheel.appendChild(el);
     cards.push(el);
   });
@@ -158,8 +158,19 @@ stage.addEventListener('pointermove', e => {
   }
 });
 stage.addEventListener('pointerleave', () => { if (!dragging) drift = 0; });
-stage.addEventListener('pointerdown', e => { dragging = true; dragMoved = false; lastX = e.clientX; stage.setPointerCapture(e.pointerId); });
-stage.addEventListener('pointerup', () => { dragging = false; setTimeout(() => { dragMoved = false; }, 0); });
+
+let downIdx = -1;
+stage.addEventListener('pointerdown', e => {
+  dragging = true; dragMoved = false; lastX = e.clientX;
+  const card = e.target.closest('.short');     // remember which card the tap began on
+  downIdx = card ? Number(card.dataset.i) : -1;
+  try { stage.setPointerCapture(e.pointerId); } catch { /* synthetic events */ }
+});
+stage.addEventListener('pointerup', () => {
+  dragging = false;
+  if (!dragMoved && downIdx >= 0) onCardClick(downIdx);   // a tap → play / stop
+  downIdx = -1;
+});
 
 stage.addEventListener('wheel', e => {
   e.preventDefault();
